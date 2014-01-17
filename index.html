@@ -5,15 +5,39 @@
 			* {
 				margin: 0;
 				padding: 0;
+				font-family: Helvetica;
+				font-size: 18px;
+				overflow: hidden;
+			}
+
+			body {
+				background-color: rgba(0,0,0,1);
 			}
 
 			img {
+				position: absolute;
+				top: 61px;
+				left: 50%;
+				margin-left: -400px;
+			}
+
+			input {
+				padding: 18px;
+				display: block;
 				width: 100%;
+				outline: none;
 			}
 		</style>
 	</head>
 	<body>
-		<img src="sample.jpeg" alt="this is the sample image with the color filter applied" color="#ff0000"/>
-		<img src="sample.jpeg" alt="this is the sample image without a color filter" />
+		<input placeholder="Enter an rgb or hex color in here." type="text" />
+		<img src="sample.jpeg" alt="this is the sample image with the color filter applied" color="#000000"/>
 	</body>
+	<script>
+		var image = document.getElementsByTagName("img")[0],
+			input = document.getElementsByTagName("input")[0];
+		setInterval( function(){
+			image.setAttribute("color" , input.value );
+		} , 200 );
+	</script>
 </html>
