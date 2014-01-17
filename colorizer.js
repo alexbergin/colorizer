@@ -1,6 +1,7 @@
 // run colorizer.stop() and colorizer.start() to stop and start the function, respectivly;
 var colorizer = {
 	start: function(){
+		clearInterval( colorizer.data.timers.watcher );
 		colorizer.data.timers.watcher = setInterval( colorizer.run.watcher , colorizer.data.timers.checkrate );
 		colorizer.running = true;
 	},
@@ -16,10 +17,13 @@ var colorizer = {
 		} else {
 			colorizer.data.timers.checkrate = set;
 			if ( colorizer.running == true ){
-				colorizer.stop();
 				colorizer.start();
 			}
 		}
+	},
+
+	active: function(){
+		return colorizer.running;
 	},
 
 	running: false,
