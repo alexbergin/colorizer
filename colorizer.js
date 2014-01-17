@@ -1,4 +1,3 @@
-// run colorizer.stop() and colorizer.start() to stop and start the function, respectivly;
 var colorizer = {
 	start: function(){
 		clearInterval( colorizer.data.timers.watcher );
@@ -268,5 +267,4 @@ var colorizer = {
 	}
 }
 
-// comment out the line below to prevent colorizer from running on load
 window.addEventListener( "load" , colorizer.start );
