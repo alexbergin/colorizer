@@ -21,6 +21,10 @@ var colorizer = {
 		}
 	},
 
+	cycle: function(){
+		colorizer.run.watcher();
+	},
+
 	active: function(){
 		return colorizer.running;
 	},
@@ -29,7 +33,7 @@ var colorizer = {
 
 	data: {
 		timers: {
-			checkrate: 16,
+			checkrate: 1000,
 			watcher: undefined,
 		},
 		images: [],
@@ -42,15 +46,17 @@ var colorizer = {
 
 			var images = document.getElementsByTagName("img");
 			for( i = 0 , idur = images.length ; i < idur ; i++ ){
-				if ( images[i].hasAttribute("color") == true ){
+				if ( images[i].hasAttribute("color") == true || images[i].hasAttribute("blendmode") == true ){
 					if ( typeof images[i].colorize == "undefined" ){
 
 						images[i].colorize = {
 							baseImage: undefined,
 							currentColor: undefined,
+							blendmode: undefined,
 						}
 
 					}
+
 					colorizer.data.images.push( images[i] );
 				} else {
 					if ( typeof images[i].colorize != "undefined" ){
@@ -59,15 +65,13 @@ var colorizer = {
 				}
 			}
 
-
-
 			var images = colorizer.data.images;
 			for( var i = 0 , idur = images.length ; i < idur ; i++ ){
 				if ( images[i].colorize.baseImage == undefined ){
 					colorizer.run.apply( images[i] , true );
 				}
 
-				if ( images[i].getAttribute("color") != images[i].colorize.currentColor ){
+				if ( images[i].getAttribute("color") != images[i].colorize.currentColor || images[i].getAttribute("blendmode") != images[i].colorize.blendmode ){
 					colorizer.run.apply( images[i] , false );
 				}
 			}
@@ -189,28 +193,318 @@ var colorizer = {
 					} else {
 						var color = draw.interpRGB( image.getAttribute("color") );
 					}
+
+					image.colorize.blendmode = image.getAttribute("blendmode");
+
+					var blendArray = image.colorize.blendmode.split(" ");
 					
-
-					for ( var i = 0 , idur = data.length ; i < idur ; i += 4 ){
-						
-						var red = data[ i + 0 ],
-							green = data[ i + 1 ],
-							blue = data[ i + 2 ];
-
-						var red = green = blue = Math.round(( red + green + blue ) / 3 );
-
-						red = Math.floor(( color.r * red ) / 255 );
-						green = Math.floor(( color.g * green ) / 255 );
-						blue = Math.floor(( color.b * blue ) / 255 );
-
-						data[ i + 0 ] = red;
-						data[ i + 1 ] = green;
-						data[ i + 2 ] = blue;
-
+					for( var i = 0 , idur = blendArray.length ; i < idur ; i++ ){
+						if ( draw.blendmode.hasOwnProperty( blendArray[i] )){
+							data = draw.blendmode[ blendArray[i] ]( data , color );
+						}
 					}
-
+					
 					imgData.data = data;
 					draw.data = imgData;
+				},
+
+				blendmode: {
+
+					/* 	complete so far:
+						multiply
+						screen
+						darken
+						lighten
+						addition
+						subtraction
+						divide
+						greyscale
+					*/
+
+					greyscale: function( data, color ){
+						for ( var i = 0 , idur = data.length ; i < idur ; i += 4 ){
+							
+							var red = data[ i + 0 ],
+								green = data[ i + 1 ],
+								blue = data[ i + 2 ];
+
+							var red = green = blue = Math.round(( red + green + blue ) / 3 );
+
+							data[ i + 0 ] = red;
+							data[ i + 1 ] = green;
+							data[ i + 2 ] = blue;
+
+						}
+
+						return data;
+					},
+
+					overlay: function( data , color ){
+						for ( var i = 0 , idur = data.length ; i < idur ; i += 4 ){
+							
+							var red = data[ i + 0 ],
+								green = data[ i + 1 ],
+								blue = data[ i + 2 ];
+
+							// idk
+
+							data[ i + 0 ] = red;
+							data[ i + 1 ] = green;
+							data[ i + 2 ] = blue;
+
+						}
+
+						return data;
+					},
+
+					screen: function( data , color ){
+						for ( var i = 0 , idur = data.length ; i < idur ; i += 4 ){
+							
+							var red = data[ i + 0 ],
+								green = data[ i + 1 ],
+								blue = data[ i + 2 ];
+
+							red = 255 - Math.floor((( 255 - color.r ) * ( 255 - red )) / 255 );
+							green = 255 - Math.floor((( 255 - color.g ) * ( 255 - green )) / 255 );
+							blue = 255 - Math.floor((( 255 - color.b ) * ( 255 - blue )) / 255 );
+
+							data[ i + 0 ] = red;
+							data[ i + 1 ] = green;
+							data[ i + 2 ] = blue;
+
+						}
+
+						return data;
+					},
+
+					lighten: function( data , color ){
+						for ( var i = 0 , idur = data.length ; i < idur ; i += 4 ){
+							
+							var red = data[ i + 0 ],
+								green = data[ i + 1 ],
+								blue = data[ i + 2 ];
+
+							red = Math.max( red , color.r );
+							green = Math.max( green , color.g );
+							blue = Math.max( blue , color.b );
+
+							data[ i + 0 ] = red;
+							data[ i + 1 ] = green;
+							data[ i + 2 ] = blue;
+
+						}
+
+						return data;
+					},
+
+					darken: function( data , color ){
+						console.log( "darken" );
+						for ( var i = 0 , idur = data.length ; i < idur ; i += 4 ){
+							
+							var red = data[ i + 0 ],
+								green = data[ i + 1 ],
+								blue = data[ i + 2 ];
+
+							red = Math.min( red , color.r );
+							green = Math.min( green , color.g );
+							blue = Math.min( blue , color.b );
+
+							data[ i + 0 ] = red;
+							data[ i + 1 ] = green;
+							data[ i + 2 ] = blue;
+
+						}
+
+						return data;
+					},
+
+					colorDodge: function( data , color ){
+						for ( var i = 0 , idur = data.length ; i < idur ; i += 4 ){
+							
+							var red = data[ i + 0 ],
+								green = data[ i + 1 ],
+								blue = data[ i + 2 ];
+
+							red = Math.floor(( color.r * red ) / 255 );
+							green = Math.floor(( color.g * green ) / 255 );
+							blue = Math.floor(( color.b * blue ) / 255 );
+
+							data[ i + 0 ] = red;
+							data[ i + 1 ] = green;
+							data[ i + 2 ] = blue;
+
+						}
+
+						return data;
+					},
+
+					colorBurn: function( data , color ){
+						for ( var i = 0 , idur = data.length ; i < idur ; i += 4 ){
+							
+							var red = data[ i + 0 ],
+								green = data[ i + 1 ],
+								blue = data[ i + 2 ];
+
+							red = Math.floor(( color.r * red ) / 255 );
+							green = Math.floor(( color.g * green ) / 255 );
+							blue = Math.floor(( color.b * blue ) / 255 );
+
+							data[ i + 0 ] = red;
+							data[ i + 1 ] = green;
+							data[ i + 2 ] = blue;
+
+						}
+
+						return data;
+					},
+
+					linearDodge: function( data , color ){
+						for ( var i = 0 , idur = data.length ; i < idur ; i += 4 ){
+							
+							var red = data[ i + 0 ],
+								green = data[ i + 1 ],
+								blue = data[ i + 2 ];
+
+							red = Math.floor(( color.r * red ) / 255 );
+							green = Math.floor(( color.g * green ) / 255 );
+							blue = Math.floor(( color.b * blue ) / 255 );
+
+							data[ i + 0 ] = red;
+							data[ i + 1 ] = green;
+							data[ i + 2 ] = blue;
+
+						}
+
+						return data;
+					},
+
+					linearBurn: function( data , color ){
+						for ( var i = 0 , idur = data.length ; i < idur ; i += 4 ){
+							
+							var red = data[ i + 0 ],
+								green = data[ i + 1 ],
+								blue = data[ i + 2 ];
+
+							red = Math.floor(( color.r * red ) / 255 );
+							green = Math.floor(( color.g * green ) / 255 );
+							blue = Math.floor(( color.b * blue ) / 255 );
+
+							data[ i + 0 ] = red;
+							data[ i + 1 ] = green;
+							data[ i + 2 ] = blue;
+
+						}
+
+						return data;
+					},
+
+					addition: function( data , color ){
+						for ( var i = 0 , idur = data.length ; i < idur ; i += 4 ){
+							
+							var red = data[ i + 0 ],
+								green = data[ i + 1 ],
+								blue = data[ i + 2 ];
+
+							red = Math.min( red + color.r , 255 )
+							green = Math.min( green + color.g , 255 )
+							blue = Math.min( blue + color.g , 255 )
+
+							data[ i + 0 ] = red;
+							data[ i + 1 ] = green;
+							data[ i + 2 ] = blue;
+
+						}
+
+						return data;
+					},
+
+					subtract: function( data , color ){
+						for ( var i = 0 , idur = data.length ; i < idur ; i += 4 ){
+							
+							var red = data[ i + 0 ],
+								green = data[ i + 1 ],
+								blue = data[ i + 2 ];
+
+							red = Math.max( red - color.r , 0 )
+							green = Math.max( green - color.g , 0 )
+							blue = Math.max( blue - color.g , 0 )
+
+							data[ i + 0 ] = red;
+							data[ i + 1 ] = green;
+							data[ i + 2 ] = blue;
+
+						}
+
+						return data;
+					},
+
+					multiply: function( data , color ){
+						for ( var i = 0 , idur = data.length ; i < idur ; i += 4 ){
+							
+							var red = data[ i + 0 ],
+								green = data[ i + 1 ],
+								blue = data[ i + 2 ];
+
+							red = Math.floor(( color.r * red ) / 255 );
+							green = Math.floor(( color.g * green ) / 255 );
+							blue = Math.floor(( color.b * blue ) / 255 );
+
+							data[ i + 0 ] = red;
+							data[ i + 1 ] = green;
+							data[ i + 2 ] = blue;
+
+						}
+
+						return data;
+					},
+
+					divide: function( data , color ){
+						for ( var i = 0 , idur = data.length ; i < idur ; i += 4 ){
+							
+							var red = data[ i + 0 ],
+								green = data[ i + 1 ],
+								blue = data[ i + 2 ];
+
+							red = Math.floor(( color.r / red ) / 255 );
+							green = Math.floor(( color.g / green ) / 255 );
+							blue = Math.floor(( color.b / blue ) / 255 );
+
+							data[ i + 0 ] = red;
+							data[ i + 1 ] = green;
+							data[ i + 2 ] = blue;
+
+						}
+
+						return data;
+					},
+
+					hardLight: function( data , color ){
+						
+						draw.blendmode[ "multiply" ]( data , color );
+						draw.blendmode[ "screen" ]( data , color );
+
+						return data;
+					},
+
+					softLight: function( data , color ){
+						for ( var i = 0 , idur = data.length ; i < idur ; i += 4 ){
+							
+							var red = data[ i + 0 ],
+								green = data[ i + 1 ],
+								blue = data[ i + 2 ];
+
+							red = Math.floor(( color.r * red ) / 255 );
+							green = Math.floor(( color.g * green ) / 255 );
+							blue = Math.floor(( color.b * blue ) / 255 );
+
+							data[ i + 0 ] = red;
+							data[ i + 1 ] = green;
+							data[ i + 2 ] = blue;
+
+						}
+
+						return data;
+					},
 				},
 
 				toRGB: function( hex ){

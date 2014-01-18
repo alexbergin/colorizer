@@ -16,7 +16,7 @@
 
 			img {
 				position: absolute;
-				top: 61px;
+				top: 122px;
 				left: 50%;
 				margin-left: -400px;
 			}
@@ -30,14 +30,17 @@
 		</style>
 	</head>
 	<body>
-		<input placeholder="Enter an rgb or hex color in here." type="text" />
-		<img src="sample.jpeg" alt="this is the sample image with the color filter applied" color="#000000"/>
+		<input placeholder="'rgb(x,x,x)' or '#xxxxxx'" type="text" />
+		<input placeholder="blendmode" type="text" />
+		<img src="sample.jpeg" alt="this is the sample image with the color filter applied" color="#ff340f" blendmode="lighten"/>
 	</body>
 	<script>
 		var image = document.getElementsByTagName("img")[0],
-			input = document.getElementsByTagName("input")[0];
+			blendmode = document.getElementsByTagName("input")[1],
+			color = document.getElementsByTagName("input")[0];
 		setInterval( function(){
-			image.setAttribute("color" , input.value );
+			image.setAttribute("color" , color.value );
+			image.setAttribute("blendmode" , blendmode.value );
 		} , 200 );
 	</script>
 </html>
